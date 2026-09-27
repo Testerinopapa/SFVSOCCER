@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Super Futebol Virtual",
+    "slug": "super-futebol-virtual",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A1118"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.superfutebolvirtual.sfv"
+    },
+    "android": {
+      "package": "com.superfutebolvirtual.sfv",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A1118"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

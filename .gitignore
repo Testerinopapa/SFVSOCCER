@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Expo & Metro
+.expo/
+web-build/
+dist/
+.metro-health-check*
+
+# Native Builds & Binaries (Excluded for UI-only repository)
+android/
+ios/
+unityLibrary/
+Soccer-Unity/
+*.apk
+*.aab
+*.aar
+*.so
+*.dex
+
+# Local logs and conversation transcripts
+chat.md
+chat.txt
+*.log
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.orig
