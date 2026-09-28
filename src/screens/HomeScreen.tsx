@@ -14,8 +14,29 @@ import { useApp } from '../context/AppContext';
 
 const { width } = Dimensions.get('window');
 
-export const HomeScreen: React.FC = () => {
+interface HomeScreenProps {
+  onNavigateTab?: (tab: 'squad' | 'tournaments' | 'market') => void;
+  onNavigatePlay?: () => void;
+}
+
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateTab, onNavigatePlay }) => {
   const { club, setCurrentTab, setActiveModal, currentSeason } = useApp();
+
+  const handleTab = (tab: 'squad' | 'tournaments' | 'market') => {
+    if (onNavigateTab) {
+      onNavigateTab(tab);
+    } else {
+      setCurrentTab(tab);
+    }
+  };
+
+  const handlePlay = () => {
+    if (onNavigatePlay) {
+      onNavigatePlay();
+    } else {
+      setActiveModal('playMenu');
+    }
+  };
 
   return (
     <ScrollView
@@ -32,7 +53,7 @@ export const HomeScreen: React.FC = () => {
       {/* Hero Dominant Action: JOGAR */}
       <TouchableOpacity
         style={styles.heroPlayButton}
-        onPress={() => setActiveModal('playMenu')}
+        onPress={handlePlay}
         activeOpacity={0.88}
       >
         <View style={styles.heroPlayContent}>
@@ -115,7 +136,7 @@ export const HomeScreen: React.FC = () => {
         {/* Card: Meu Clube */}
         <TouchableOpacity
           style={styles.hubCard}
-          onPress={() => setCurrentTab('squad')}
+          onPress={() => handleTab('squad')}
           activeOpacity={0.8}
         >
           <View style={[styles.hubIconBg, { backgroundColor: 'rgba(0, 230, 118, 0.15)' }]}>
@@ -128,7 +149,7 @@ export const HomeScreen: React.FC = () => {
         {/* Card: Torneios */}
         <TouchableOpacity
           style={styles.hubCard}
-          onPress={() => setCurrentTab('tournaments')}
+          onPress={() => handleTab('tournaments')}
           activeOpacity={0.8}
         >
           <View style={[styles.hubIconBg, { backgroundColor: 'rgba(255, 215, 0, 0.15)' }]}>
@@ -141,7 +162,7 @@ export const HomeScreen: React.FC = () => {
         {/* Card: Mercado */}
         <TouchableOpacity
           style={styles.hubCard}
-          onPress={() => setCurrentTab('market')}
+          onPress={() => handleTab('market')}
           activeOpacity={0.8}
         >
           <View style={[styles.hubIconBg, { backgroundColor: 'rgba(0, 176, 255, 0.15)' }]}>
@@ -222,7 +243,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: THEME.spacing.lg,
-    paddingBottom: 110,
+    paddingBottom: 135,
   },
   seasonBanner: {
     flexDirection: 'row',

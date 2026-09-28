@@ -4,15 +4,36 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { THEME } from '../constants/theme';
 import { useApp } from '../context/AppContext';
 
-export const BottomNav: React.FC = () => {
+interface BottomNavProps {
+  onTabChange?: (tab: 'home' | 'squad' | 'tournaments' | 'market') => void;
+  onPlayPress?: () => void;
+}
+
+export const BottomNav: React.FC<BottomNavProps> = ({ onTabChange, onPlayPress }) => {
   const { currentTab, setCurrentTab, setActiveModal } = useApp();
+
+  const handleTabPress = (tab: 'home' | 'squad' | 'tournaments' | 'market') => {
+    if (onTabChange) {
+      onTabChange(tab);
+    } else {
+      setCurrentTab(tab);
+    }
+  };
+
+  const handlePlay = () => {
+    if (onPlayPress) {
+      onPlayPress();
+    } else {
+      setActiveModal('playMenu');
+    }
+  };
 
   return (
     <View style={styles.container}>
       {/* Tab: INÍCIO */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => setCurrentTab('home')}
+        onPress={() => handleTabPress('home')}
         activeOpacity={0.7}
       >
         <Ionicons
@@ -33,7 +54,7 @@ export const BottomNav: React.FC = () => {
       {/* Tab: CLUBE */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => setCurrentTab('squad')}
+        onPress={() => handleTabPress('squad')}
         activeOpacity={0.7}
       >
         <MaterialCommunityIcons
@@ -55,7 +76,7 @@ export const BottomNav: React.FC = () => {
       <View style={styles.centerButtonContainer}>
         <TouchableOpacity
           style={styles.centerButton}
-          onPress={() => setActiveModal('playMenu')}
+          onPress={handlePlay}
           activeOpacity={0.85}
         >
           <View style={styles.centerButtonInner}>
@@ -68,7 +89,7 @@ export const BottomNav: React.FC = () => {
       {/* Tab: TORNEIOS */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => setCurrentTab('tournaments')}
+        onPress={() => handleTabPress('tournaments')}
         activeOpacity={0.7}
       >
         <Ionicons
@@ -89,7 +110,7 @@ export const BottomNav: React.FC = () => {
       {/* Tab: MERCADO */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => setCurrentTab('market')}
+        onPress={() => handleTabPress('market')}
         activeOpacity={0.7}
       >
         <Ionicons

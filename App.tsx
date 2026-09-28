@@ -26,22 +26,56 @@ import { SettingsModal } from './src/screens/SettingsModal';
 import { SellPlayerModal } from './src/screens/SellPlayerModal';
 import { UnityBridgeService } from './src/services/unityBridge';
 import { MatchResult, Player } from './src/types';
+import { BannerAd, AdService } from './src/ads';
 
 const MainAppContent: React.FC = () => {
   const {
     isLoggedIn,
     club,
     currentTab,
+    setCurrentTab,
     activeModal,
     setActiveModal,
     recordMatchResult,
     lastMatchResult,
   } = useApp();
 
+  const isNavigatingRef = React.useRef(false);
+
   const [authView, setAuthView] = useState<'login' | 'createClub'>('login');
   const [userKit, setUserKit] = useState<1 | 2>(1);
   const [aiKit, setAiKit] = useState<1 | 2>(1);
   const [sellingPlayer, setSellingPlayer] = useState<Player | null>(null);
+
+  // Transition between major screens with interstitial ad
+  const handleNavigateTab = async (newTab: 'home' | 'squad' | 'tournaments' | 'market') => {
+    if (newTab === currentTab) return;
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+
+    try {
+      await AdService.showInterstitial();
+    } catch (err) {
+      console.warn('[App] Interstitial ad error, continuing navigation:', err);
+    } finally {
+      setCurrentTab(newTab);
+      isNavigatingRef.current = false;
+    }
+  };
+
+  const handleNavigatePlay = async () => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+
+    try {
+      await AdService.showInterstitial();
+    } catch (err) {
+      console.warn('[App] Interstitial ad error, opening play menu:', err);
+    } finally {
+      setActiveModal('playMenu');
+      isNavigatingRef.current = false;
+    }
+  };
 
   // If user is not logged in, show Auth screens
   if (!isLoggedIn) {
@@ -60,6 +94,15 @@ const MainAppContent: React.FC = () => {
   ) => {
     setUserKit(userUniform);
     setAiKit(aiUniform);
+
+    // 1. Show Video Ad before match
+    console.log('[App] Showing video ad before match...');
+    try {
+      await AdService.showMatchVideo('pre_match');
+    } catch (err) {
+      console.warn('[App] Pre-match video ad failed or skipped, starting match:', err);
+    }
+
     if (mode === 'unity3d') {
       if (UnityBridgeService.isUnityNativeAvailable()) {
         try {
@@ -98,14 +141,17 @@ const MainAppContent: React.FC = () => {
 
       {/* Active Tab Screen */}
       <View style={styles.content}>
-        {currentTab === 'home' && <HomeScreen />}
+        {currentTab === 'home' && <HomeScreen onNavigateTab={handleNavigateTab} onNavigatePlay={handleNavigatePlay} />}
         {currentTab === 'squad' && <SquadScreen />}
         {currentTab === 'tournaments' && <TournamentsScreen />}
         {currentTab === 'market' && <MarketScreen />}
       </View>
 
+      {/* Banner Advertisement sitting directly ABOVE Bottom Navigation */}
+      <BannerAd visible={!activeModal || activeModal === 'playMenu'} />
+
       {/* Bottom Navigation */}
-      <BottomNav />
+      <BottomNav onTabChange={handleNavigateTab} onPlayPress={handleNavigatePlay} />
 
       {/* --- MODALS --- */}
       {/* 1. Player Details */}

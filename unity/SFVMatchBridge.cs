@@ -136,6 +136,47 @@ namespace SFV.Bridge
         }
 
         /// <summary>
+        /// Call this method when the referee blows the halftime whistle (45 mins).
+        /// Signals Android host to pause Unity and display the Halftime Video Ad.
+        /// </summary>
+        public void SendHalfTimeToApp()
+        {
+            Debug.Log("[SFVMatchBridge] Halftime reached! Signaling Android Activity to show Halftime Video Ad...");
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
+            {
+                using (AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+                {
+                    AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+                    currentActivity.Call("onUnityHalfTime");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SFVMatchBridge] Error sending Halftime to Android Activity: {ex.Message}");
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Called from Android Activity when ad starts or match is paused
+        /// </summary>
+        public void PauseMatch()
+        {
+            Debug.Log("[SFVMatchBridge] Pausing Unity Match for Advertisement...");
+            Time.timeScale = 0f;
+        }
+
+        /// <summary>
+        /// Called from Android Activity when ad finishes to resume the match
+        /// </summary>
+        public void ResumeMatch()
+        {
+            Debug.Log("[SFVMatchBridge] Resuming Unity Match after Advertisement...");
+            Time.timeScale = 1.0f;
+        }
+
+        /// <summary>
         /// Call this method when the referee blows the final whistle (90 mins).
         /// It packages the score, events, and stats, and sends them back to Android/React Native.
         /// </summary>

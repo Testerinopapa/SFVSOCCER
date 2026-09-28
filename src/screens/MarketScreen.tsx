@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: THEME.spacing.md,
     gap: 10,
-    paddingBottom: 110,
+    paddingBottom: 135,
   },
   marketCard: {
     flexDirection: 'row',

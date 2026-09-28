@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: THEME.spacing.md,
     paddingTop: 10,
-    paddingBottom: 110,
+    paddingBottom: 135,
     gap: 8,
   },
   playerCard: {
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
   formationContainer: {
     padding: THEME.spacing.md,
     alignItems: 'center',
-    paddingBottom: 110,
+    paddingBottom: 135,
   },
   formationSelectorBox: {
     width: '100%',
@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
   },
   uniformsContainer: {
     padding: THEME.spacing.md,
-    paddingBottom: 110,
+    paddingBottom: 135,
   },
   uniformToggleBar: {
     flexDirection: 'row',

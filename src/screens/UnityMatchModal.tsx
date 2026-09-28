@@ -15,6 +15,7 @@ import { THEME } from '../constants/theme';
 import { useApp } from '../context/AppContext';
 import { MatchEvent, MatchResult } from '../types';
 import { UnityBridgeService } from '../services/unityBridge';
+import { AdService } from '../ads';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -52,6 +53,7 @@ export const UnityMatchModal: React.FC<UnityMatchModalProps> = ({
   const [statusMessage, setStatusMessage] = useState('Use o analógico para driblar e chute a gol!');
   const [goalCelebration, setGoalCelebration] = useState(false);
   const [isSprinting, setIsSprinting] = useState(false);
+  const [isHalftimeActive, setIsHalftimeActive] = useState(false);
 
   // Active controlled player ('P1' striker or 'P2' winger)
   const [activePlayer, setActivePlayer] = useState<'P1' | 'P2'>('P1');
@@ -349,8 +351,33 @@ export const UnityMatchModal: React.FC<UnityMatchModalProps> = ({
     }, 1800);
   };
 
+  // Halftime Action & Video Ad Presentation
+  const handleTriggerHalfTime = async () => {
+    if (isHalftimeActive) return;
+    setIsHalftimeActive(true);
+    setStatusMessage('⏸️ INTERVALO: Primeiro tempo encerrado. Exibindo anúncio em vídeo...');
+
+    try {
+      await AdService.showMatchVideo('halftime');
+    } catch (err) {
+      console.warn('[UnityMatchModal] Halftime video ad error:', err);
+    } finally {
+      setIsHalftimeActive(false);
+      setMatchMinute(46);
+      setStatusMessage('▶️ SEGUNDO TEMPO: Bola rolando novamente!');
+    }
+  };
+
   // Finish Match & Send Final Results to SFV Reward System
-  const handleFinishMatch = () => {
+  const handleFinishMatch = async () => {
+    setStatusMessage('🏁 APITO FINAL: Partida encerrada! Exibindo anúncio em vídeo...');
+
+    try {
+      await AdService.showMatchVideo('post_match');
+    } catch (err) {
+      console.warn('[UnityMatchModal] Post-match video ad error:', err);
+    }
+
     const finalUser = userScoreRef.current;
     const finalAi = aiScoreRef.current;
 
@@ -396,13 +423,20 @@ export const UnityMatchModal: React.FC<UnityMatchModalProps> = ({
         <View style={styles.topBar}>
           <View style={styles.gameEngineInfo}>
             <MaterialCommunityIcons name="soccer" size={20} color={THEME.colors.primary} />
-            <Text style={styles.gameEngineTitle}>SFV MATCH ARENA • 3D INTERATIVO</Text>
+            <Text style={styles.gameEngineTitle}>SFV ARENA 3D</Text>
           </View>
 
-          <TouchableOpacity style={styles.finishTopBtn} onPress={handleFinishMatch} activeOpacity={0.8}>
-            <Ionicons name="flag" size={14} color="#000" style={{ marginRight: 4 }} />
-            <Text style={styles.finishTopBtnText}>APITO FINAL (90')</Text>
-          </TouchableOpacity>
+          <View style={styles.topActionsRow}>
+            <TouchableOpacity style={styles.halfTimeTopBtn} onPress={handleTriggerHalfTime} activeOpacity={0.8}>
+              <Ionicons name="time" size={13} color="#000" style={{ marginRight: 3 }} />
+              <Text style={styles.topActionBtnText}>INTERVALO (45')</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.finishTopBtn} onPress={handleFinishMatch} activeOpacity={0.8}>
+              <Ionicons name="flag" size={13} color="#000" style={{ marginRight: 3 }} />
+              <Text style={styles.topActionBtnText}>FINAL (90')</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Native Unity 3D Engine Launcher */}
@@ -663,13 +697,31 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 0.5,
   },
+  topActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  halfTimeTopBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: THEME.colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
   finishTopBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: THEME.colors.gold,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 6,
+  },
+  topActionBtnText: {
+    color: '#000000',
+    fontSize: 10,
+    fontWeight: '900',
   },
   finishTopBtnText: {
     color: '#000000',

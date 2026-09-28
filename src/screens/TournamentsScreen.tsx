@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   colStat: { width: 28 },
   colPts: { width: 34, color: THEME.colors.gold },
   listContent: {
-    paddingBottom: 110,
+    paddingBottom: 135,
   },
   tableRow: {
     flexDirection: 'row',

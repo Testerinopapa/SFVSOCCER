@@ -12,6 +12,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { THEME } from '../constants/theme';
 import { useApp } from '../context/AppContext';
 import { MatchEvent, MatchResult } from '../types';
+import { AdService } from '../ads';
 
 interface MatchSimulationModalProps {
   visible: boolean;
@@ -49,6 +50,9 @@ export const MatchSimulationModal: React.FC<MatchSimulationModalProps> = ({
     timeline: [],
   });
 
+  const [isHalftime, setIsHalftime] = useState(false);
+  const halftimeTriggeredRef = useRef(false);
+
   useEffect(() => {
     if (visible) {
       setCurrentMinute(0);
@@ -56,6 +60,8 @@ export const MatchSimulationModal: React.FC<MatchSimulationModalProps> = ({
       setAiScore(0);
       setEvents([]);
       setGoalFlash(null);
+      setIsHalftime(false);
+      halftimeTriggeredRef.current = false;
 
       // Random outcome generation: 55% Win, 25% Draw, 20% Loss for engaging prototype feel
       const roll = Math.random();
@@ -155,12 +161,19 @@ export const MatchSimulationModal: React.FC<MatchSimulationModalProps> = ({
 
   // Simulation timer
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || isHalftime) return;
 
-    const intervalTime = speed === 1 ? 160 : 80; // ~15 seconds to reach 90 min
+    const intervalTime = speed === 1 ? 160 : 80;
 
     const timer = setInterval(() => {
       setCurrentMinute(prev => {
+        // Stop timer at 45' for halftime
+        if (prev >= 44 && !halftimeTriggeredRef.current) {
+          halftimeTriggeredRef.current = true;
+          setIsHalftime(true);
+          return 45;
+        }
+
         const nextMin = prev + 1;
 
         // Check if any event happens at this minute
@@ -183,9 +196,15 @@ export const MatchSimulationModal: React.FC<MatchSimulationModalProps> = ({
 
         if (nextMin >= 90) {
           clearInterval(timer);
-          setTimeout(() => {
-            finishSimulation();
-          }, 1200);
+          setTimeout(async () => {
+            try {
+              await AdService.showMatchVideo('post_match');
+            } catch (e) {
+              console.warn('[MatchSimulationModal] Post-match ad error:', e);
+            } finally {
+              finishSimulation();
+            }
+          }, 600);
           return 90;
         }
 
@@ -194,7 +213,19 @@ export const MatchSimulationModal: React.FC<MatchSimulationModalProps> = ({
     }, intervalTime);
 
     return () => clearInterval(timer);
-  }, [visible, speed]);
+  }, [visible, speed, isHalftime]);
+
+  // Dedicated Halftime Video Ad Trigger
+  useEffect(() => {
+    if (!visible) return;
+    if (isHalftime) {
+      console.log('[MatchSimulationModal] Halftime reached, presenting video ad...');
+      AdService.showMatchVideo('halftime').finally(() => {
+        console.log('[MatchSimulationModal] Halftime ad finished. Resuming second half.');
+        setIsHalftime(false);
+      });
+    }
+  }, [visible, isHalftime]);
 
   const triggerGoalFlash = (text: string) => {
     setGoalFlash(text);
@@ -271,12 +302,18 @@ export const MatchSimulationModal: React.FC<MatchSimulationModalProps> = ({
     onFinishMatch(matchResultData);
   };
 
-  const handleSkipToEnd = () => {
+  const handleSkipToEnd = async () => {
     setCurrentMinute(90);
     setUserScore(matchScenarioRef.current.finalUserScore);
     setAiScore(matchScenarioRef.current.finalAiScore);
     setEvents(matchScenarioRef.current.timeline);
-    finishSimulation();
+    try {
+      await AdService.showMatchVideo('post_match');
+    } catch (e) {
+      console.warn('[MatchSimulationModal] Skip post-match ad error:', e);
+    } finally {
+      finishSimulation();
+    }
   };
 
   return (
